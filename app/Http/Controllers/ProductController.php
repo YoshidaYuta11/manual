@@ -92,24 +92,32 @@ class ProductController extends Controller
     }
 
     public function update(ProductRequest $request, Product $product)
-    {
-        try {
-            $product->fill($request->validated());
+{
+    try {
+        $validatedData = $request->validated();
 
-            if ($request->hasFile('img_path')) {
-                $filename = $request->img_path->getClientOriginalName();
-                $filePath = $request->img_path->storeAs('products', $filename, 'public');
-                $product->img_path = '/storage/' . $filePath;
+        if ($request->hasFile('img_path')) {
+            if ($product->img_path) {
+                \Storage::disk('public')->delete(str_replace('/storage/', '', $product->img_path));
             }
 
-            $product->save();
-
-            return redirect()->route('products.index')->with('success', 'Product updated successfully');
-        } catch (\Exception $e) {
-            \Log::error('Failed to update product: ', ['error' => $e->getMessage()]);
-            return redirect()->route('products.index')->with('error', 'Failed to update product: ' . $e->getMessage());
+            $filename = $request->img_path->getClientOriginalName();
+            $filePath = $request->img_path->storeAs('products', $filename, 'public');
+            $validatedData['img_path'] = '/storage/' . $filePath;
+        } else {
+            unset($validatedData['img_path']);
         }
+
+        $product->fill($validatedData);
+        $product->save();
+
+        return redirect()->route('products.index')->with('success', 'Product updated successfully');
+    } catch (\Exception $e) {
+        \Log::error('Failed to update product: ', ['error' => $e->getMessage()]);
+        return redirect()->route('products.index')->with('error', 'Failed to update product: ' . $e->getMessage());
     }
+}
+
 
     public function destroy(Product $product)
     {
