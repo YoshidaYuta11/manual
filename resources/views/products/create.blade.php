@@ -11,19 +11,21 @@
         @csrf
 
         @if ($errors->any())
-    <div class="alert alert-danger">
-        <ul>
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
-
+            <div class="alert alert-danger">
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
         <div class="mb-3">
             <label for="product_name" class="form-label">商品名:</label>
-            <input id="product_name" type="text" name="product_name" class="form-control" required>
+            <input id="product_name" type="text" name="product_name" class="form-control" value="{{ old('product_name') }}" required>
+            @error('product_name')
+                <small class="text-danger">{{ $message }}</small>
+            @enderror
         </div>
 
         <div class="mb-3">
@@ -33,32 +35,44 @@
                     <option value="{{ $company->id }}">{{ $company->company_name }}</option>
                 @endforeach
             </select>
+            @error('company_id')
+                <small class="text-danger">{{ $message }}</small>
+            @enderror
         </div>
 
         <div class="mb-3">
             <label for="price" class="form-label">価格:</label>
-            <input id="price" type="text" name="price" class="form-control" required>
+            <input id="price" type="text" name="price" class="form-control" value="{{ old('price') }}" required>
+            @error('price')
+                <small class="text-danger">{{ $message }}</small>
+            @enderror
         </div>
 
         <div class="mb-3">
             <label for="stock" class="form-label">在庫数:</label>
-            <input id="stock" type="text" name="stock" class="form-control" required>
+            <input id="stock" type="text" name="stock" class="form-control" value="{{ old('stock') }}" required>
+            @error('stock')
+                <small class="text-danger">{{ $message }}</small>
+            @enderror
         </div>
 
         <div class="mb-3">
             <label for="comment" class="form-label">コメント:</label>
-            <textarea id="comment" name="comment" class="form-control" rows="3" required></textarea>
+            <textarea id="comment" name="comment" class="form-control" rows="3" required>{{ old('comment') }}</textarea>
+            @error('comment')
+                <small class="text-danger">{{ $message }}</small>
+            @enderror
         </div>
 
         <div class="mb-3">
             <label for="img_path" class="form-label">商品画像:</label>
             <input id="img_path" type="file" name="img_path" class="form-control" required>
+            @error('img_path')
+                <small class="text-danger">{{ $message }}</small>
+            @enderror
         </div>
 
         <button type="submit" class="btn btn-primary">登録</button>
     </form>
-
-
 </div>
 @endsection
-
