@@ -6,7 +6,7 @@
 
     <a href="{{ route('products.index') }}" class="btn btn-primary mb-3">商品一覧に戻る</a>
 
-    <form method="POST" action="{{ route('products.store') }}" enctype="multipart/form-data">
+    <form method="POST" action="{{ route('products.store') }}" enctype="multipart/form-data" novalidate>
 
         @csrf
 
