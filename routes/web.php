@@ -14,9 +14,11 @@ Route::get('/', function () {
 
 Auth::routes();
 
-Route::group(['middleware' => 'auth'], function () {
+Route::group(['prefix' => 'products', 'middleware' => 'auth'], function () {
     // Index
-    Route::get('products', [ProductController::class, 'index'])->name('products.index');
+    Route::get('/', [ProductController::class, 'index'])->name('products.index');
+    Route::get('/ajax', [ProductController::class, 'index'])->name('products.ajax.index');
+
     
     // Create
     Route::get('products/create', [ProductController::class, 'create'])->name('products.create');

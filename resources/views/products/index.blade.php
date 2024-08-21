@@ -6,7 +6,8 @@
 
     <a href="{{ route('products.create') }}" class="btn btn-primary mb-3">商品新規登録</a>
 
-    <form method="GET" action="{{ route('products.index') }}">
+    <form id="search-form" method="GET" action="{{ route('products.index') }}">
+        @csrf
         <div class="mb-3">
             <label for="search" class="form-label">商品名で検索:</label>
             <input type="text" id="search" name="search" class="form-control" value="{{ request('search') }}">
@@ -20,6 +21,26 @@
                     <option value="{{ $company->id }}" {{ request('company_id') == $company->id ? 'selected' : '' }}>{{ $company->company_name }}</option>
                 @endforeach
             </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="min_price" class="form-label">最小価格:</label>
+            <input type="number" id="min_price" name="min_price" class="form-control" value="{{ request('min_price') }}">
+        </div>
+
+        <div class="mb-3">
+            <label for="max_price" class="form-label">最大価格:</label>
+            <input type="number" id="max_price" name="max_price" class="form-control" value="{{ request('max_price') }}">
+        </div>
+
+        <div class="mb-3">
+            <label for="min_stock" class="form-label">最小在庫数:</label>
+            <input type="number" id="min_stock" name="min_stock" class="form-control" value="{{ request('min_stock') }}">
+        </div>
+
+        <div class="mb-3">
+            <label for="max_stock" class="form-label">最大在庫数:</label>
+            <input type="number" id="max_stock" name="max_stock" class="form-control" value="{{ request('max_stock') }}">
         </div>
 
         <button type="submit" class="btn btn-primary">検索</button>
@@ -41,51 +62,175 @@
         </div>
     @endif
 
-    <div class="products mt-5">
+    <div id="product-list" class="products mt-5">
         <h2>商品情報</h2>
-        <table class="table table-striped">
+        <table class="table table-striped tablesorter">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>商品名</th>
-                    <th>メーカー</th>
-                    <th>価格</th>
-                    <th>在庫数</th>
+                    <th><a href="?sort=id&direction={{ request('direction') == 'asc' ? 'desc' : 'asc' }}">ID</a></th>
+                    <th><a href="?sort=product_name&direction={{ request('direction') == 'asc' ? 'desc' : 'asc' }}">商品名</a></th>
+                    <th><a href="?sort=company_name&direction={{ request('direction') == 'asc' ? 'desc' : 'asc' }}">メーカー</a></th>
+                    <th><a href="?sort=price&direction={{ request('direction') == 'asc' ? 'desc' : 'asc' }}">価格</a></th>
+                    <th><a href="?sort=stock&direction={{ request('direction') == 'asc' ? 'desc' : 'asc' }}">在庫数</a></th>
                     <th>コメント</th>
                     <th>商品画像</th>
                     <th>操作</th>
                 </tr>
             </thead>
             <tbody>
-            @foreach ($products as $product)
-                <tr>
-                    <td>{{ $product->id }}</td>
-                    <td>{{ $product->product_name }}</td>
-                    <td>{{ $product->company->company_name }}</td>
-                    <td>{{ $product->price }}</td>
-                    <td>{{ $product->stock }}</td>
-                    <td>{{ $product->comment }}</td>
-                    <td>
-                        @if (filter_var($product->img_path, FILTER_VALIDATE_URL))
-                            <img src="{{ $product->img_path }}" alt="商品画像" width="100">
-                        @else
-                            <img src="{{ asset($product->img_path) }}" alt="商品画像" width="100">
-                        @endif
-                    </td>
-                    <td>
-                        <a href="{{ route('products.show', $product) }}" class="btn btn-info btn-sm mx-1">詳細表示</a>
-                        <form method="POST" action="{{ route('products.destroy', $product) }}" class="d-inline">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger btn-sm mx-1">削除</button>
-                        </form>
-                    </td>
-                </tr>
-            @endforeach
+                @foreach ($products as $product)
+                    <tr id="product-{{ $product->id }}">
+                        <td>{{ $product->id }}</td>
+                        <td>{{ $product->product_name }}</td>
+                        <td>{{ $product->company->company_name }}</td>
+                        <td>{{ $product->price }}</td>
+                        <td>{{ $product->stock }}</td>
+                        <td>{{ $product->comment }}</td>
+                        <td>
+                            @if (filter_var($product->img_path, FILTER_VALIDATE_URL))
+                                <img src="{{ $product->img_path }}" alt="商品画像" width="100">
+                            @else
+                                <img src="{{ asset($product->img_path) }}" alt="商品画像" width="100">
+                            @endif
+                        </td>
+                        <td>
+                            <a href="{{ route('products.show', $product) }}" class="btn btn-info btn-sm mx-1">詳細表示</a>
+                            <form method="POST" action="{{ route('products.destroy', $product) }}" class="delete-form" data-id="{{ $product->id }}">
+    @csrf
+    @method('DELETE')
+    <button class="btn btn-danger btn-sm mx-1" type="submit" data-id="{{ $product->id }}">削除</button>
+</form>
+
+
+                        </td>
+                    </tr>
+                @endforeach
             </tbody>
         </table>
     </div>
-    
+
     {{ $products->links() }}
 </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tablesorter@2.31.3/dist/js/jquery.tablesorter.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/js/jquery.tablesorter.min.js"></script>
+
+
+<script>
+    $(document).ready(function() {
+    // tablesorterの初期化
+    $(".tablesorter").tablesorter({
+        sortList: [[0, 1]],  // 初期ソート順をIDの降順に設定
+        headers: {
+            7: { sorter: false }  // 操作列（最後の列）はソート不可
+        }
+    });
+
+    // 検索フォームの非同期送信処理
+    $('#search-form').on('submit', function(e) {
+        e.preventDefault(); // フォームのデフォルト動作（ページリロード）をキャンセル
+        var form = $(this);
+        var url = form.attr('action');
+        var formData = form.serialize();
+
+        $.ajax({
+            url: url,
+            type: 'GET',
+            data: formData,
+            success: function(response) {
+                // 商品一覧を更新
+                $('#product-list').html(response);
+                // テーブルソートを再初期化
+                $(".tablesorter").tablesorter();
+            },
+            error: function(xhr) {
+                console.log(xhr.responseText);
+                alert('検索に失敗しました。');
+            }
+        });
+    });
+
+    // 非同期削除処理
+    $(document).on('submit', '.delete-form', function(e) {
+        e.preventDefault(); // フォームのデフォルト動作（ページリロード）を防ぐ
+
+        if (!confirm('この商品を削除しますか？')) {
+            return;
+        }
+
+        var productId = $(this).data('id');
+        var url = '/products/' + productId;
+
+        $.ajax({
+            url: url,
+            type: 'DELETE',
+            data: {
+                _token: '{{ csrf_token() }}',
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('#product-' + productId).remove();
+                    alert('商品が削除されました。');
+                } else {
+                    alert('削除に失敗しました。');
+                }
+            },
+            error: function(xhr) {
+                console.log(xhr.responseText);
+                alert('削除に失敗しました。');
+            }
+        });
+    });
+});
+
+
+
+    @include('products.partials.product_list')
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchForm = document.getElementById('search-form');
+    if (searchForm) {
+        searchForm.addEventListener('submit', function(event) {
+            event.preventDefault(); // フォーム送信によるページリロードを防ぐ
+            const formData = new FormData(searchForm);
+
+            const searchValue = formData.get('search');
+            const companyId = formData.get('company_id');
+
+            fetchProducts(searchValue, companyId);
+        });
+    }
+
+    function fetchProducts(search, company_id) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('search', search);
+        url.searchParams.set('company_id', company_id);
+
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        })
+        .then(response => response.text())
+        .then(html => {
+    const productList = document.getElementById('product-list');
+    if (productList) {
+        productList.innerHTML = html;
+        $(".tablesorter").tablesorter(); // ここでtablesorterを再初期化
+    }
+})
+
+        .catch(error => console.error('Error fetching products:', error));
+    }
+});
+
+</script>
+
+
 @endsection
