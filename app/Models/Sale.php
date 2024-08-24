@@ -9,11 +9,11 @@ class Sale extends Model
 {
     use HasFactory;
 
-    public function product()
-    {
-        return $this->belongsTo(Product::class);
-    }
+    protected $table = 'sales';
 
-
+    protected $fillable = [
+        'product_id',
+        'quantity',
+    ];
 }
 

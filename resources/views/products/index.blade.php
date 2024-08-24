@@ -95,11 +95,12 @@
                         </td>
                         <td>
                             <a href="{{ route('products.show', $product) }}" class="btn btn-info btn-sm mx-1">詳細表示</a>
-                            <form method="POST" action="{{ route('products.destroy', $product) }}" class="delete-form" data-id="{{ $product->id }}">
+                            <form method="POST" action="{{ route('products.destroy', $product) }}" class="delete-form">
     @csrf
     @method('DELETE')
-    <button class="btn btn-danger btn-sm mx-1" type="submit" data-id="{{ $product->id }}">削除</button>
+    <button class="btn btn-danger btn-sm mx-1" type="submit">削除</button>
 </form>
+
 
 
                         </td>
@@ -114,10 +115,18 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tablesorter@2.31.3/dist/js/jquery.tablesorter.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/js/jquery.tablesorter.min.js"></script>
+
 
 
 <script>
+
+$.ajaxSetup({
+    headers: {
+        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+    }
+});
+
+
     $(document).ready(function() {
     // tablesorterの初期化
     $(".tablesorter").tablesorter({
@@ -126,6 +135,8 @@
             7: { sorter: false }  // 操作列（最後の列）はソート不可
         }
     });
+
+    
 
     // 検索フォームの非同期送信処理
     $('#search-form').on('submit', function(e) {
@@ -140,6 +151,7 @@
             data: formData,
             success: function(response) {
                 // 商品一覧を更新
+                
                 $('#product-list').html(response);
                 // テーブルソートを再初期化
                 $(".tablesorter").tablesorter();
@@ -153,43 +165,54 @@
 
     // 非同期削除処理
     $(document).on('submit', '.delete-form', function(e) {
-        e.preventDefault(); // フォームのデフォルト動作（ページリロード）を防ぐ
+    e.preventDefault();
+    console.log('削除フォームが送信されました。');
 
-        if (!confirm('この商品を削除しますか？')) {
-            return;
-        }
+    if (!confirm('この商品を削除しますか？')) {
+        return;
+    }
 
-        var productId = $(this).data('id');
-        var url = '/products/' + productId;
+    var form = $(this);
+    var url = form.attr('action'); // action属性からURLを取得
+    console.log('AJAXリクエストを送信します:', url);
 
-        $.ajax({
-            url: url,
-            type: 'DELETE',
-            data: {
-                _token: '{{ csrf_token() }}',
-            },
-            success: function(response) {
-                if (response.success) {
-                    $('#product-' + productId).remove();
-                    alert('商品が削除されました。');
-                } else {
-                    alert('削除に失敗しました。');
-                }
-            },
-            error: function(xhr) {
-                console.log(xhr.responseText);
+    $.ajax({
+        url: url,
+        type: 'DELETE',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        data: {
+            _token: form.find('input[name="_token"]').val(),
+        },
+        success: function(response) {
+            console.log('AJAXリクエスト成功:', response);
+            if (response.success) {
+                form.closest('tr').remove(); // テーブルの行を削除
+                alert('商品が削除されました。');
+            } else {
                 alert('削除に失敗しました。');
             }
-        });
+        },
+        error: function(xhr) {
+            console.log('AJAXリクエスト失敗:', xhr.responseText);
+            alert('削除に失敗しました。');
+        }
     });
 });
 
+});
 
+</script>
 
-    @include('products.partials.product_list')
+    
+    
             </div>
+            
         </div>
+        
     </div>
+   
 </div>
 
 <script>

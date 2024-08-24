@@ -32,7 +32,8 @@ Route::group(['prefix' => 'products', 'middleware' => 'auth'], function () {
     Route::put('products/{product}', [ProductController::class, 'update'])->name('products.update');
 
     // Destroy
-    Route::delete('products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+    Route::delete('/products/{id}', [ProductController::class, 'destroy'])->name('products.destroy');
+
 });
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

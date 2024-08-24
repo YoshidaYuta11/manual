@@ -160,7 +160,7 @@ public function destroy(Product $product)
         
 
         // This part will only be executed if the request is not AJAX
-        return redirect()->route('products.index')->with('success', 'Product deleted successfully');
+        return redirect()->route('products.index')->with('success', '非同期処理に失敗しました');
     } catch (\Exception $e) {
         \Log::error('Failed to delete product: ', ['error' => $e->getMessage()]);
 
