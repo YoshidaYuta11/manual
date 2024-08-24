@@ -136,7 +136,23 @@ $.ajaxSetup({
         }
     });
 
-    
+    $(document).on('click', 'th a', function(e) {
+    e.preventDefault();
+
+    var url = $(this).attr('href');
+
+    $.ajax({
+        url: url,
+        type: 'GET',
+        success: function(response) {
+            // テーブル部分だけを更新するコード
+            $('#table-container').html($(response).find('#table-container').html());
+        },
+        error: function() {
+            alert('データの取得に失敗しました。');
+        }
+    });
+});
 
     // 検索フォームの非同期送信処理
     $('#search-form').on('submit', function(e) {
