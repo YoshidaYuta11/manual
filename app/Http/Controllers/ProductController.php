@@ -136,41 +136,42 @@ class ProductController extends Controller
 }
 
 
-public function destroy(Product $product)
+public function destroy($id)
 {
     try {
+        \DB::beginTransaction();
+
+        $product = Product::findOrFail($id);
         $product->delete();
 
+        \DB::commit();
+
+        \Log::info('削除対象の商品が見つかりました。', ['product_id' => $id]);
+
+        // Ajaxリクエストの場合の処理
         if (request()->ajax()) {
+            \Log::info('AJAXリクエストが認識されました。レスポンスを返します。');
             return response()->json(['success' => true]);
         }
-        \Log::info('リクエスト詳細: ', [
-            'is_ajax' => request()->ajax(),
-            'headers' => request()->headers->all(),
-            'method' => request()->method(),
-            'url' => request()->url(),
-        ]);
-        
 
-        if (request()->ajax()) {
-            \Log::info('AJAXリクエストが認識されました');
-        } else {
-            \Log::info('通常のリクエストとして処理されました');
-        }
-        
+        \Log::info('通常のリクエストとして処理されました。');
 
-        // This part will only be executed if the request is not AJAX
-        return redirect()->route('products.index')->with('success', '非同期処理に失敗しました');
+        // 非Ajaxリクエストの場合のリダイレクト処理
+        return redirect()->route('products.index')->with('success', '商品が削除されました');
+        
     } catch (\Exception $e) {
+        \DB::rollBack();
+
         \Log::error('Failed to delete product: ', ['error' => $e->getMessage()]);
 
         if (request()->ajax()) {
             return response()->json(['success' => false, 'error' => '商品の削除に失敗しました。'], 500);
         }
 
-        // This part will only be executed if the request is not AJAX
         return redirect()->route('products.index')->with('error', 'Failed to delete product: ' . $e->getMessage());
     }
 }
+
+
 
 }

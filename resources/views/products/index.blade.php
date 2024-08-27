@@ -231,45 +231,7 @@ $.ajaxSetup({
    
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const searchForm = document.getElementById('search-form');
-    if (searchForm) {
-        searchForm.addEventListener('submit', function(event) {
-            event.preventDefault(); // フォーム送信によるページリロードを防ぐ
-            const formData = new FormData(searchForm);
 
-            const searchValue = formData.get('search');
-            const companyId = formData.get('company_id');
-
-            fetchProducts(searchValue, companyId);
-        });
-    }
-
-    function fetchProducts(search, company_id) {
-        const url = new URL(window.location.href);
-        url.searchParams.set('search', search);
-        url.searchParams.set('company_id', company_id);
-
-        fetch(url, {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-        })
-        .then(response => response.text())
-        .then(html => {
-    const productList = document.getElementById('product-list');
-    if (productList) {
-        productList.innerHTML = html;
-        $(".tablesorter").tablesorter(); // ここでtablesorterを再初期化
-    }
-})
-
-        .catch(error => console.error('Error fetching products:', error));
-    }
-});
-
-</script>
 
 
 @endsection
